@@ -74,7 +74,7 @@
                                 <h1>Mask Acceptance</h1>
                             </header>
                             
-                                <span class="image main"><img src="/img/blogs/pic02.jpg" alt="" /></span>
+                                <span class="image main"><img src="/img/blogs/pic07.jpg" alt="" /></span>
                             
                             
 
@@ -118,43 +118,43 @@ glimpse(nyt_mask_survey)</code></pre>
 county_map %&gt;% 
   sample_n(5)</code></pre>
 <pre><code>##      long      lat  order  hole piece            group    id
-## 1    -228  -888647 133860 FALSE     1 0500000US40059.1 40059
-## 2  775075   382161  91726 FALSE     1 0500000US27031.1 27031
-## 3 1227282  -737230  65230 FALSE     1 0500000US21085.1 21085
-## 4 1486523 -1527063  38990 FALSE     1 0500000US12129.1 12129
-## 5 2336733   407033  77012 FALSE     1 0500000US23011.1 23011</code></pre>
+## 1 1191137 -1488885  35473 FALSE     1 0500000US12033.1 12033
+## 2  374437 -1433179 159961 FALSE     1 0500000US48213.1 48213
+## 3   54211   -11198 147853 FALSE     1 0500000US46049.1 46049
+## 4 1722305  -591159 181243 FALSE     1 0500000US54025.1 54025
+## 5 -280345 -1171358 162842 FALSE     1 0500000US48369.1 48369</code></pre>
 <pre class="r"><code>county_data %&gt;%
     sample_n(5)</code></pre>
-<pre><code>##      id             name state census_region      pop_dens   pop_dens4
-## 1 41005 Clackamas County    OR          West [  100,  500) [118,71672]
-## 2 51035   Carroll County    VA         South [   50,  100) [ 45,  118)
-## 3 08011      Bent County    CO          West [    0,   10) [  0,   17)
-## 4 26097  Mackinac County    MI       Midwest [   10,   50) [  0,   17)
-## 5 06027      Inyo County    CA          West [    0,   10) [  0,   17)
-##     pop_dens6   pct_black    pop female white black travel_time land_area
-## 1 [ 82,  215) [ 0.0, 2.0) 394972   50.8  90.6   1.0        26.9      1870
-## 2 [ 45,   82) [ 0.0, 2.0)  29621   50.3  97.9   0.8        26.5       475
-## 3 [  0,    9) [ 5.0,10.0)   5630   36.2  86.9   6.8        17.7      1513
-## 4 [  9,   25) [ 0.0, 2.0)  11042   48.8  75.6   1.2        19.6      1022
-## 5 [  0,    9) [ 0.0, 2.0)  18410   49.8  81.7   0.9        14.8     10181
+<pre><code>##      id                   name state census_region      pop_dens   pop_dens4
+## 1 21139      Livingston County    KY         South [   10,   50) [ 17,   45)
+## 2 51800           Suffolk city    VA         South [  100,  500) [118,71672]
+## 3 54063          Monroe County    WV         South [   10,   50) [ 17,   45)
+## 4 06063          Plumas County    CA          West [    0,   10) [  0,   17)
+## 5 28065 Jefferson Davis County    MS         South [   10,   50) [ 17,   45)
+##     pop_dens6   pct_black   pop female white black travel_time land_area
+## 1 [ 25,   45) [ 0.0, 2.0)  9359   51.5  97.4   0.6        29.2       313
+## 2 [215,71672] [25.0,50.0) 86806   51.7  52.5  43.0        28.1       400
+## 3 [ 25,   45) [ 0.0, 2.0) 13582   50.5  97.4   0.8        34.4       473
+## 4 [  0,    9) [ 0.0, 2.0) 18606   49.9  91.1   1.0        22.9      2553
+## 5 [ 25,   45) [50.0,85.3] 11822   52.1  38.8  59.8        32.7       408
 ##   hh_income su_gun4 su_gun6  fips votes_dem_2016 votes_gop_2016
-## 1     64352 [ 5, 8) [ 7, 8) 41005          90187          79062
-## 2     32853 [11,54] [12,54] 51035           2557          10653
-## 3     37340 [ 0, 5) [ 0, 4)  8011            581           1166
-## 4     38704 [11,54] [12,54] 26097           2085           3740
-## 5     44796 [11,54] [12,54]  6027           3155           4248
+## 1     40313 [11,54] [12,54] 21139            887           3570
+## 2     66085 [ 5, 8) [ 7, 8) 51800          23012          17206
+## 3     41234 [ 8,11) [10,12) 54063           1089           4337
+## 4     45794 [11,54] [12,54]  6063           3224           5079
+## 5     27186 [ 8,11) [ 8,10) 28065           3720           2466
 ##   total_votes_2016 per_dem_2016 per_gop_2016 diff_2016 per_dem_2012
-## 1           182136        0.495        0.434     11125        0.507
-## 2            13587        0.188        0.784      8096        0.284
-## 3             1892        0.307        0.616       585        0.414
-## 4             6088        0.342        0.614      1655        0.435
-## 5             7996        0.395        0.531      1093        0.427
+## 1             4642        0.191        0.769      2683        0.298
+## 2            41929        0.549        0.410      5806        0.571
+## 3             5670        0.192        0.765      3248        0.280
+## 4             8830        0.365        0.575      1855        0.402
+## 5             6237        0.596        0.395      1254        0.619
 ##   per_gop_2012 diff_2012  winner partywinner16 winner12 partywinner12 flipped
-## 1        0.472      6462 Clinton      Democrat    Obama      Democrat      No
-## 2        0.678      4851   Trump    Republican   Romney    Republican      No
-## 3        0.560       275   Trump    Republican   Romney    Republican      No
-## 4        0.557       744   Trump    Republican   Romney    Republican      No
-## 5        0.545       766   Trump    Republican   Romney    Republican      No</code></pre>
+## 1        0.685      1743   Trump    Republican   Romney    Republican      No
+## 2        0.419      6416 Clinton      Democrat    Obama      Democrat      No
+## 3        0.693      2130   Trump    Republican   Romney    Republican      No
+## 4        0.574      1570   Trump    Republican   Romney    Republican      No
+## 5        0.369      1655 Clinton      Democrat    Obama      Democrat      No</code></pre>
 <pre class="r"><code>glimpse(county_data)</code></pre>
 <pre><code>## Rows: 3,195
 ## Columns: 32

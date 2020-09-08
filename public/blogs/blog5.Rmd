@@ -5,7 +5,7 @@ categories:
 date: "2020-09-06"
 description: Is mask acceptance high in the US? NYT Survey analysis
 draft: false
-image: pic02.jpg
+image: pic07.jpg
 keywords: ""
 slug: blog5
 title: Mask Acceptance
