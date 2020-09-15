@@ -2,10 +2,10 @@
 categories:
 - ""
 - ""
-date: "2020-09-06"
-description: Is mask acceptance high in the US? NYT Survey analysis
+date: "2019-06-11"
+description: What are the most important machine parameters of the injection molding machine? Gear production- Industry 4.0
 draft: false
-image: pic07.jpg
+image: Digital.jpg
 keywords: ""
 slug: blog5
 title: Mask Acceptance

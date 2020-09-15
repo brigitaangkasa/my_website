@@ -92,9 +92,9 @@ disqusShortname = ""
     # Display your showcases here.
     
     [[params.tiles.showcase]]
-      title = "Project 1: xx"
-      subtitle = "NYT Example: How does mask use acceptance vary in the US?"
-      image = "pic01.jpg"
+      title = "Project 1: Industry 4.0"
+      subtitle = "Gear Production: What are the most important machine parameters of the injection molding machine?"
+      image = "Gear.jpg"
       url = "blogs/blog5"
 
     [[params.tiles.showcase]]
@@ -103,17 +103,17 @@ disqusShortname = ""
       image = "pic02.jpg"
       url = "blogs/tempus"
 
-    [[params.tiles.showcase]]
-      title = "Project 3: xx"
-      subtitle = "Lorem Etiam Nullam"
-      image = "pic03.jpg"
-      url = "blogs/magna"
+    #[[params.tiles.showcase]]
+     # title = "Project 3: xx"
+      #subtitle = "Lorem Etiam Nullam"
+      #image = "pic03.jpg"
+      #url = "blogs/magna"
 
-    [[params.tiles.showcase]]
-      title = "Project 4: xx"
-      subtitle = "Nisl Sed Aliquam"
-      image = "pic04.jpg"
-      url = "blogs/ipsum"
+    #[[params.tiles.showcase]]
+      #title = "Project 4: xx"
+      #subtitle = "Nisl Sed Aliquam"
+      #image = "pic04.jpg"
+      #url = "blogs/ipsum"
       
     # You can make more showcases by copy and pasting the code above
 
