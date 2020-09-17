@@ -92,27 +92,27 @@ disqusShortname = ""
     # Display your showcases here.
     
     [[params.tiles.showcase]]
-      title = "Project 1: Industry 4.0"
-      subtitle = "Gear Production: What are the most important machine parameters of the injection molding machine?"
-      image = "Gear.jpg"
-      url = "blogs/blog5"
+      title = "Project 1: Financial Stocks"
+      subtitle = "NYSE Stocks: What is the relationship between risk and return in financial stocks?"
+      image = "trading.jpg"
+      url = "blogs/financialstock"
 
     [[params.tiles.showcase]]
-      title = "Project 2: xx"
-      subtitle = "Feugiat Amet Tempus"
-      image = "pic02.jpg"
-      url = "blogs/tempus"
+      title = "Project 2: Climate Change"
+      subtitle = "Temperature Anomalies: Is global warming real or a hoax?"
+      image = "leave.jpg"
+      url = "blogs/climatechange"
 
-    #[[params.tiles.showcase]]
-     # title = "Project 3: xx"
-      #subtitle = "Lorem Etiam Nullam"
-      #image = "pic03.jpg"
-      #url = "blogs/magna"
+    [[params.tiles.showcase]]
+      title = "Project 3: GDP"
+      subtitle = "United Nations: How does the GDP differ between developing and developed countries?"
+      image = "gdp.jpg"
+      url = "blogs/gdp"
 
-    #[[params.tiles.showcase]]
-      #title = "Project 4: xx"
-      #subtitle = "Nisl Sed Aliquam"
-      #image = "pic04.jpg"
+    [[params.tiles.showcase]]
+      title = "Project xx: In Progress"
+      subtitle = "Launching soon!"
+      image = "wip.jpg"
       #url = "blogs/ipsum"
       
     # You can make more showcases by copy and pasting the code above

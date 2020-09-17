@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Lifestyle on Portfolio website for Brigita Angkasa</title>
+    <title>Brigita Angkasa on Portfolio website for Brigita Angkasa</title>
     <link>/blogs/</link>
-    <description>Recent content in Lifestyle on Portfolio website for Brigita Angkasa</description>
+    <description>Recent content in Brigita Angkasa on Portfolio website for Brigita Angkasa</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Tue, 31 Oct 2017 22:27:21 -0500</lastBuildDate>
@@ -12,13 +12,43 @@
     
     
     <item>
-      <title>Mask Acceptance</title>
+      <title>How does the GDP differ between developing and developed countries?</title>
+      <link>/blogs/gdp/</link>
+      <pubDate>Tue, 15 Sep 2020 00:00:00 +0000</pubDate>
+      
+      <guid>/blogs/gdp/</guid>
+      <description>Challenge 2:GDP components over time and among countries At the risk of oversimplifying things, the main components of gross domestic product, GDP are personal consumption (C), business investment (I), government spending (G) and net exports (exports - imports). You can read more about GDP and the different approaches in calculating at the Wikipedia GDP page.
+The GDP data we will look at is from the United Nations’ National Accounts Main Aggregates Database, which contains estimates of total GDP and its components for all countries from 1970 to today.</description>
+    </item>
+    
+    <item>
+      <title>Is global warming real or a hoax?</title>
+      <link>/blogs/climatechange/</link>
+      <pubDate>Tue, 15 Sep 2020 00:00:00 +0000</pubDate>
+      
+      <guid>/blogs/climatechange/</guid>
+      <description>Climate change and temperature anomalies We want to study climate change and gratefully find data on the Combined Land-Surface Air and Sea-Surface Water Temperature Anomalies in the Northern Hemisphere at NASA’s Goddard Institute for Space Studies. The tabular data of temperature anomalies can be found here.
+To define temperature anomalies, we need to have a reference, or base period, which NASA clearly states that it is the period between 1951-1980.</description>
+    </item>
+    
+    <item>
+      <title>What is the relationship between risk and return on financial stocks?</title>
       <link>/blogs/blog5/</link>
-      <pubDate>Sun, 06 Sep 2020 00:00:00 +0000</pubDate>
+      <pubDate>Tue, 15 Sep 2020 00:00:00 +0000</pubDate>
       
       <guid>/blogs/blog5/</guid>
-      <description>NYT mask use Github source for data https://github.com/nytimes/covid-19-data/tree/master/mask-use
- Getting the data #Source for data url &amp;lt;- &amp;quot;https://github.com/nytimes/covid-19-data/raw/master/mask-use/mask-use-by-county.csv&amp;quot; nyt_mask_survey &amp;lt;- read_csv(url) nyt_mask_survey &amp;lt;- nyt_mask_survey %&amp;gt;% clean_names() %&amp;gt;% mutate( mostly_yes= frequently+always, mostly_no = never+rarely, delta = mostly_yes-mostly_no ) glimpse(nyt_mask_survey) ## Rows: 3,142 ## Columns: 9 ## $ countyfp &amp;lt;chr&amp;gt; &amp;quot;01001&amp;quot;, &amp;quot;01003&amp;quot;, &amp;quot;01005&amp;quot;, &amp;quot;01007&amp;quot;, &amp;quot;01009&amp;quot;, &amp;quot;01011&amp;quot;, &amp;quot;010… ## $ never &amp;lt;dbl&amp;gt; 0.053, 0.083, 0.067, 0.020, 0.053, 0.031, 0.102, 0.152, 0.… ## $ rarely &amp;lt;dbl&amp;gt; 0.</description>
+      <description>Returns of financial stocks As we have to pay rather high tuition fees, our idea is to make some money with stocks. We want to download some data for interesting companies that are listed at the NYSE and examine risks and returns! But in order to download the financial data, we first have to consider the mapping of company names to stock symbols.
+nyse &amp;lt;- read_csv(here::here(&amp;quot;data&amp;quot;,&amp;quot;nyse.csv&amp;quot;)) Now that we have this data, let’s have a quick look at the number of companies per sector.</description>
+    </item>
+    
+    <item>
+      <title>What is the relationship between risk and return on financial stocks?</title>
+      <link>/blogs/financialstock/</link>
+      <pubDate>Tue, 15 Sep 2020 00:00:00 +0000</pubDate>
+      
+      <guid>/blogs/financialstock/</guid>
+      <description>Returns of financial stocks As we have to pay rather high tuition fees, our idea is to make some money with stocks. We want to download some data for interesting companies that are listed at the NYSE and examine risks and returns! But in order to download the financial data, we first have to consider the mapping of company names to stock symbols.
+#load data on stocks on nyse using read_csv nyse &amp;lt;- read_csv(here::here(&amp;quot;data&amp;quot;,&amp;quot;nyse.</description>
     </item>
     
     <item>

@@ -2,13 +2,13 @@
 categories:
 - ""
 - ""
-date: "2020-09-06"
-description: Is mask acceptance high in the US? NYT Survey analysis
+date: "2020-09-15"
+description: Financial Stocks
 draft: false
-image: pic07.jpg
+image: bannerstock.jpg
 keywords: ""
 slug: blog5
-title: Mask Acceptance
+title: What is the relationship between risk and return on financial stocks?
 ---
 
 
@@ -28,100 +28,164 @@ knitr::opts_chunk$set(
 ```
 
 
-```{r load-libraries,echo=FALSE}
+```{r load-libraries, warning=FALSE, message=FALSE, echo=FALSE}
 library(tidyverse)  # Load ggplot2, dplyr, and all the other tidyverse packages
-library(janitor)
-library(skimr)
-library(vroom)
 library(mosaic)
+library(ggthemes)
+library(lubridate)
+library(fivethirtyeight)
 library(here)
-#remotes::install_github("kjhealy/socviz")
-library(socviz)
+library(skimr)
+library(janitor)
+library(vroom)
+library(tidyquant)
+library(kableExtra)
+
+options(scipen=200)
 ```
 
 
-## NYT mask use
+# Returns of financial stocks
 
-Github source for data https://github.com/nytimes/covid-19-data/tree/master/mask-use
+As we have to pay rather high tuition fees, our idea is to make some money with stocks. We want to download some data for interesting companies that are listed at the NYSE and examine risks and returns!
+But in order to download the financial data, we first have to consider the mapping of company names to stock symbols. 
 
 
-## Getting the data 
-
-```{r, read_data}
-#Source for data 
-url <- "https://github.com/nytimes/covid-19-data/raw/master/mask-use/mask-use-by-county.csv"
-nyt_mask_survey <- read_csv(url)
-nyt_mask_survey <- nyt_mask_survey %>%
-  clean_names() %>% 
-  mutate(
-    mostly_yes= frequently+always,
-    mostly_no = never+rarely,
-    delta = mostly_yes-mostly_no
-  )
-glimpse(nyt_mask_survey)
+```{r load_nyse_data, message=FALSE, warning=FALSE}
+nyse <- read_csv(here::here("data","nyse.csv"))
 ```
 
-## Choropleth maps
 
-The FIPS code is a federal code that numbers states and territories of the US. It extends to the county level with an additional four digits, so every county in the US has a unique six-digit identifier, where the first two digits represent the state. 
+Now that we have this data, let's have a quick look at the number of companies per sector.
 
-We will be using Kieran Healy's `socviz` package which among other things contains `county_map` and `county_data`  
 
-```{r}
-# America’s choropleths; use county_map that has all polygons 
-# and county data with demographics/election data from socviz datafile
-# The id field is the FIPS code for the county
-county_map %>% 
-  sample_n(5)
-county_data %>%
-    sample_n(5)
-glimpse(county_data)
-# we have data on 3195 FIPS....
-glimpse(county_map)
-# ... but to create a map, we translate these 3195 counties to 191,382 polygons!
+```{r companies_per_sector}
+
+companies_by_sector <- nyse %>%
+  group_by(sector) %>%
+  count() %>% # count the number of companies by sector
+  arrange(desc(n))
+
+companies_by_sector %>% 
+  rename(`number of companies` = n) %>% # rename for better reading
+  kbl() %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) # have a nice HTML table
+
+
+ggplot(companies_by_sector, aes(x = n, y = reorder(sector, n)))+
+  geom_col() + 
+  labs(title = "Number of NYSE companies per sector",
+       x = "number of companies",
+       y = "sector")
+
 ```
 
-## Joing the files
-
-We have three files
-
-1. `nyt_mask_survey`, our NYT survey data, 
-1. `county_map` that has all polygons that define a county
-1. `county_data` with demographics/election data.
+Next, let's choose some stocks and their ticker symbols and download some data. Note that `SPY` is the SP500 ETF (Exchange Traded Fund).
 
 
+```{r get_price_data, message=FALSE, warning=FALSE, cache=TRUE}
 
-```{r, join_data}
-county_full <- left_join(county_map, county_data, by = "id")
-county_masks_full <- left_join(county_full, nyt_mask_survey, 
-                                by = c("id"="countyfp"))
+myStocks <- c("AXP","BLK","KO","FDX","MCD","ORCL","SPY" ) %>%
+  tq_get(get  = "stock.prices",
+         from = "2011-01-01",
+         to   = "2020-08-31") %>%
+  group_by(symbol) 
+
+glimpse(myStocks) # examine the structure of the resulting data frame
+
 ```
 
-## Building our choropleth plot
+Financial performance analysis depends on returns. Hence, we first want to calculate daily and monthly returns (given the adjusted closing prices). 
 
-```{r, plot_choropleths}
-p <- ggplot(data = county_masks_full,
-            mapping = aes(x = long, y = lat,
-                          fill = delta, 
-                          group = group))
-p1 <- p + 
-  geom_polygon(color = "gray90", size = 0.05) + 
-  coord_equal()
-p2 <- p1 + 
-  scale_fill_gradient(low = '#ffffcc', high= '#006837')
-p3 <- p1 + 
-  scale_fill_gradient2()
-# get different colours from https://colorbrewer2.org/
-# the one shown here is https://colorbrewer2.org/#type=diverging&scheme=BrBG&n=6
-p4 <- p1 + 
-  scale_fill_gradientn(colours = c('#8c510a','#d8b365','#f6e8c3','#c7eae5','#5ab4ac','#01665e'))
-p1
-p2
-p3
-p4
-p4 + labs(fill = "Mask acceptance, (Mostly Yes - Mostly No)", 
-          caption = "“Estimates from The New York Times, based on roughly 250,000 interviews \nconducted by Dynata from July 2 to July 14, 2020”") +
-  guides(fill = guide_legend(nrow = 1)) + 
-  theme_map() + 
-  theme(legend.position = "bottom")
+
+```{r calculate_returns, message=FALSE, warning=FALSE, cache=TRUE}
+#calculate daily returns
+myStocks_returns_daily <- myStocks %>%
+  tq_transmute(select     = adjusted, 
+               mutate_fun = periodReturn, 
+               period     = "daily", 
+               type       = "log",
+               col_rename = "daily_returns",
+               cols = c(nested.col))  
+
+#calculate monthly  returns
+myStocks_returns_monthly <- myStocks %>%
+  tq_transmute(select     = adjusted, 
+               mutate_fun = periodReturn, 
+               period     = "monthly", 
+               type       = "arithmetic",
+               col_rename = "monthly_returns",
+               cols = c(nested.col)) 
+
+#calculate yearly returns
+myStocks_returns_annual <- myStocks %>%
+  group_by(symbol) %>%
+  tq_transmute(select     = adjusted, 
+               mutate_fun = periodReturn, 
+               period     = "yearly", 
+               type       = "arithmetic",
+               col_rename = "yearly_returns",
+               cols = c(nested.col))
 ```
+
+
+To get a feeling for the numbers, let's summarise monthly returns for each of the stocks and the `SPY` ETF:
+
+```{r summarise_monthly_returns}
+
+myStocks_returns_monthly_summary <- myStocks_returns_monthly %>% 
+  group_by(symbol) %>% 
+  summarise(min = min(monthly_returns), 
+            median = median(monthly_returns), 
+            max = max(monthly_returns), 
+            mean = mean(monthly_returns), 
+            sd = sd(monthly_returns)) # calculate summary statistics for monthly returns by stock
+
+myStocks_returns_monthly_summary %>% 
+  kbl() %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) # have a nice HTML table
+
+```
+
+To get an even better feeling, let's also visualise the distribution of monthly returns for each of the stocks:
+
+```{r density_monthly_returns}
+
+myStocks_returns_monthly %>% 
+  filter(symbol != "SPY") %>% # only display density of the stocks (not the ETF)
+  ggplot(aes(x = monthly_returns, fill = symbol)) + # add some color (fill) just for fun
+  geom_density() + 
+  facet_wrap(~symbol) + # create a density plot for each stock
+  labs(title = "Distribution of monthly returns per stock", 
+       x = "monthly returns") +
+  theme(legend.position = "none") # show no legend
+
+```
+We can see that deviation from 0.0 is strongest for Blackrock (BLK). Hence, the stock is highly volatile and thus the riskiest.
+Opposed to this, the stock of Coca Cola (KO) is quite steady, with only small changes in monthly return. Hence, this stock
+is the least risky.
+
+However, it is not only about risk, but also about returns. Hence, let's plot the risk/return profiles of our stocks!
+
+```{r risk_return_plot}
+
+myStocks_returns_monthly_summary %>% 
+  filter(symbol != "SPY") %>% # only display the stocks (not the ETF)
+  ggplot(aes(x=sd, y = mean, label = symbol)) +
+  geom_point(aes(colour = symbol), size = 4) + # make points a little bigger
+  geom_smooth(method = lm, se = FALSE, group = 0) + # add a risk-return line
+  ggrepel::geom_text_repel(aes(colour = symbol)) + # add the stock names as labels to the points
+  labs(title = 'Risk/Return profile of stocks', 
+       x = 'Risk (stdev of monthly returns)', 
+       y ="Average monthly return") +
+  theme_bw() + # use a nice theme
+  scale_x_continuous(labels = scales::percent) + # display x values as percentages
+  scale_y_continuous(labels = scales::percent) + # display y values as percentages
+  theme(legend.position = "none") # show no legend
+
+```
+
+As a thumb of rule, taking a higher risk is rewarded with a higher average monthly return. 
+We can see that even though FedEx (FDX) has the highest risk, it does not have the highest average monthly return.
+Furthermore, Blackrock (BLK) has the highest average monthly return, with only a little more risk than American Express (AXP) and Oracle (ORCL).
+Regarding our goal of making money with stocks, we would thus choose a combination of Blackrock and the lower risk McDonald's (MCD), as they are above our risk-return line.
