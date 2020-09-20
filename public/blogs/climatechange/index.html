@@ -270,9 +270,171 @@ ggplot(tidyweather, aes(x=date, y = delta))+
     title = &quot;Increasing Weather Anomalies Demonstrating Global Warming&quot;,
     caption = &quot;Source: NASA&quot;
   )</code></pre>
-<p><img src="/blogs/climatechange_files/figure-html/unnamed-chunk-1-1.png" width="648" style="display: block; margin: auto;" /></p>
-<p>Let’s explore how the linear regression model fits the data.</p>
-<p>Is the effect of increasing temperature more pronounced in some months? Let’s have a look:</p>
+<p><img src="/blogs/climatechange_files/figure-html/monthly_model_view-1.png" width="648" style="display: block; margin: auto;" /></p>
+<p>Let’s explore how well the linear regression model fits the data.</p>
+<pre class="r"><code># fit linear regression model
+model1 &lt;- lm(delta ~ date , data=tidyweather)
+
+# get statistics to determine how well model fits
+glance(model1) %&gt;%
+  
+  # make a nice HTML table with our custom settings
+  kbl(caption=&quot;Summary Statistics of Linear Regression Model (Monthly)&quot;) %&gt;%
+  kable_styling(bootstrap_options = c(&quot;striped&quot;, &quot;hover&quot;, &quot;condensed&quot;, &quot;responsive&quot;))</code></pre>
+<table class="table table-striped table-hover table-condensed table-responsive" style="margin-left: auto; margin-right: auto;">
+<caption>
+(#tab:fit_model_monthly)Summary Statistics of Linear Regression Model (Monthly)
+</caption>
+<thead>
+<tr>
+<th style="text-align:right;">
+r.squared
+</th>
+<th style="text-align:right;">
+adj.r.squared
+</th>
+<th style="text-align:right;">
+sigma
+</th>
+<th style="text-align:right;">
+statistic
+</th>
+<th style="text-align:right;">
+p.value
+</th>
+<th style="text-align:right;">
+df
+</th>
+<th style="text-align:right;">
+logLik
+</th>
+<th style="text-align:right;">
+AIC
+</th>
+<th style="text-align:right;">
+BIC
+</th>
+<th style="text-align:right;">
+deviance
+</th>
+<th style="text-align:right;">
+df.residual
+</th>
+<th style="text-align:right;">
+nobs
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right;">
+0.605
+</td>
+<td style="text-align:right;">
+0.605
+</td>
+<td style="text-align:right;">
+0.274
+</td>
+<td style="text-align:right;">
+2564
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+-208
+</td>
+<td style="text-align:right;">
+423
+</td>
+<td style="text-align:right;">
+439
+</td>
+<td style="text-align:right;">
+126
+</td>
+<td style="text-align:right;">
+1673
+</td>
+<td style="text-align:right;">
+1675
+</td>
+</tr>
+</tbody>
+</table>
+<p>From the 1st table, we can see that the adjusted r-squared is 0.605. This number indicates that the correlation is strong. We can see that the temperature changes by only a slight amount for every date increase, specifically the model suggests that there is a 2.30 x 10^-5 increase in temperature for every month that passes. Although this seems relatively small, a small increase in temperature has a significant effect on the world!</p>
+<pre class="r"><code># get p-values
+tidy(model1) %&gt;%
+  
+  # make a nice HTML table with our custom settings
+  kbl(caption=&quot;p-values of Linear Regression Model (Monthly)&quot;) %&gt;%
+  kable_styling(bootstrap_options = c(&quot;striped&quot;, &quot;hover&quot;, &quot;condensed&quot;, &quot;responsive&quot;))</code></pre>
+<table class="table table-striped table-hover table-condensed table-responsive" style="margin-left: auto; margin-right: auto;">
+<caption>
+(#tab:model_monthly_analysis)p-values of Linear Regression Model (Monthly)
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+term
+</th>
+<th style="text-align:right;">
+estimate
+</th>
+<th style="text-align:right;">
+std.error
+</th>
+<th style="text-align:right;">
+statistic
+</th>
+<th style="text-align:right;">
+p.value
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+(Intercept)
+</td>
+<td style="text-align:right;">
+0.231
+</td>
+<td style="text-align:right;">
+0.007
+</td>
+<td style="text-align:right;">
+30.8
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+date
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:right;">
+50.6
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+</tbody>
+</table>
+<p>This fact is further reinforced by the p-values and t statistics in the second table. The t statistic of the time variable is 50.6, which is alot greater than 2. The p-value is also 0, which is less than 0.05. This indicates that time is indeed significant in determining the weather anomalies.</p>
+<p>This shows that the Is the effect of increasing temperature more pronounced in some months? Let’s have a look:</p>
 <p><img src="/blogs/climatechange_files/figure-html/facet_wrap-1.png" width="648" style="display: block; margin: auto;" /></p>
 <p>We can see that the effect is almost the same for every month!</p>
 <p>As a next step for our analysis of global warming, we group the years into bigger periods:</p>
@@ -323,6 +485,192 @@ ggplot(average_annual_anomaly, aes(x=year, y= annual_average_delta))+
   )                         </code></pre>
 <p><img src="/blogs/climatechange_files/figure-html/averaging-1.png" width="648" style="display: block; margin: auto;" /></p>
 <p>Once more, the message is pretty clear: global warming is real!</p>
+<p>Let’s see how well a linear regression model fits the data. We have fit a linear regression model by month above, so we would think that the model fit to the annual data will give similar results, but let’s check!</p>
+<pre class="r"><code>#creating yearly averages
+average_annual_anomaly &lt;- tidyweather %&gt;% 
+  group_by(year) %&gt;%   #grouping data by Year
+  
+  # creating summaries for mean delta 
+  # use `na.rm=TRUE` to eliminate NA (not available) values 
+  summarise(annual_average_delta = mean(delta, na.rm=TRUE)) 
+
+#plotting the data:
+ggplot(average_annual_anomaly, aes(x=year, y= annual_average_delta))+
+  geom_point()+
+  #Fit the best fit line, using lm method
+  geom_smooth(method = &quot;lm&quot;) +
+  #change to theme_bw() to have white background + black frame around plot
+  theme_bw() +
+  labs (
+    title = &quot;Global Warming is REAL!!&quot;,
+    subtitle = &quot;Average Yearly Anomaly&quot;,
+    y     = &quot;Average Annual Delta&quot;,
+    caption = &quot;Source: NASA&quot;
+  )                         </code></pre>
+<p><img src="/blogs/climatechange_files/figure-html/annual_model_view-1.png" width="648" style="display: block; margin: auto;" />
+As we can clearly see, there seems to be a strong trend towards warm weather anomalies! Let’s explore this relationship further by fitting a linear regression model to the data.</p>
+<pre class="r"><code># fit linear regression model
+model2 &lt;- lm(annual_average_delta ~ year , data=average_annual_anomaly)
+
+# get statistics to determine how well model fits
+glance(model2) %&gt;%
+  
+  # make a nice HTML table with our custom settings
+  kbl(caption=&quot;Summary Statistics of Linear Regression Model (Annual)&quot;) %&gt;%
+  kable_styling(bootstrap_options = c(&quot;striped&quot;, &quot;hover&quot;, &quot;condensed&quot;, &quot;responsive&quot;))</code></pre>
+<table class="table table-striped table-hover table-condensed table-responsive" style="margin-left: auto; margin-right: auto;">
+<caption>
+(#tab:fit_model_annual)Summary Statistics of Linear Regression Model (Annual)
+</caption>
+<thead>
+<tr>
+<th style="text-align:right;">
+r.squared
+</th>
+<th style="text-align:right;">
+adj.r.squared
+</th>
+<th style="text-align:right;">
+sigma
+</th>
+<th style="text-align:right;">
+statistic
+</th>
+<th style="text-align:right;">
+p.value
+</th>
+<th style="text-align:right;">
+df
+</th>
+<th style="text-align:right;">
+logLik
+</th>
+<th style="text-align:right;">
+AIC
+</th>
+<th style="text-align:right;">
+BIC
+</th>
+<th style="text-align:right;">
+deviance
+</th>
+<th style="text-align:right;">
+df.residual
+</th>
+<th style="text-align:right;">
+nobs
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right;">
+0.727
+</td>
+<td style="text-align:right;">
+0.726
+</td>
+<td style="text-align:right;">
+0.211
+</td>
+<td style="text-align:right;">
+368
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+20
+</td>
+<td style="text-align:right;">
+-34.1
+</td>
+<td style="text-align:right;">
+-25.3
+</td>
+<td style="text-align:right;">
+6.16
+</td>
+<td style="text-align:right;">
+138
+</td>
+<td style="text-align:right;">
+140
+</td>
+</tr>
+</tbody>
+</table>
+<p>The linear regression model fitting the weather anomalies broken down annually fits better (adjusted r-squared 0.73) than the model fitting weather anomalies broken down monthly (adjusted r-squared 0.60). Let’s double check the relationship further by calculating the p-values and t-statistic.</p>
+<pre class="r"><code># get p-values
+tidy(model2) %&gt;%
+  
+  # make a nice HTML table with our custom settings
+  kbl(caption=&quot;p-values of Linear Regression Model (Annual)&quot;) %&gt;%
+  kable_styling(bootstrap_options = c(&quot;striped&quot;, &quot;hover&quot;, &quot;condensed&quot;, &quot;responsive&quot;))</code></pre>
+<table class="table table-striped table-hover table-condensed table-responsive" style="margin-left: auto; margin-right: auto;">
+<caption>
+(#tab:model_annual_analysis)p-values of Linear Regression Model (Annual)
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+term
+</th>
+<th style="text-align:right;">
+estimate
+</th>
+<th style="text-align:right;">
+std.error
+</th>
+<th style="text-align:right;">
+statistic
+</th>
+<th style="text-align:right;">
+p.value
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+(Intercept)
+</td>
+<td style="text-align:right;">
+-16.464
+</td>
+<td style="text-align:right;">
+0.861
+</td>
+<td style="text-align:right;">
+-19.1
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+year
+</td>
+<td style="text-align:right;">
+0.008
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:right;">
+19.2
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+</tbody>
+</table>
+<p>Again we can see that the p-value (0&lt;0.05) and t statistic (19&gt;2) indicates that the model is significant. We can also see that the model suggests that there is a 0.008 increase in temperature every year!</p>
 </div>
 <div id="confidence-interval-for-delta" class="section level2">
 <h2>Confidence Interval for <code>delta</code></h2>

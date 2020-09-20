@@ -116,7 +116,7 @@ ggplot(tidyweather, aes(x=date, y = delta))+
 ```
 
 As we can clearly see, there seems to be a strong trend towards warm weather anomalies! Let's explore this relationship further by fitting a linear regression model to the data.
-```{r}
+```{r monthly_model_view}
 
 tidyweather <- tidyweather %>%
   mutate(date = ymd(paste(as.character(Year), Month, "1")), # create `date` variable with lubridate
@@ -251,7 +251,7 @@ Once more, the message is pretty clear: global warming is real!
 
 Let's see how well a linear regression model fits the data. We have fit a linear regression model by month above, so we would think that the model fit to the annual data will give similar results, but let's check!
 
-```{r averaging}
+```{r annual_model_view}
 
 #creating yearly averages
 average_annual_anomaly <- tidyweather %>% 

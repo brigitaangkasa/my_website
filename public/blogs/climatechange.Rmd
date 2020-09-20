@@ -42,6 +42,8 @@ library(readxl)
 library(vroom)
 library(kableExtra)
 library(infer)
+library(tidyverse)
+library(broom)
 ```
 
 
@@ -114,7 +116,7 @@ ggplot(tidyweather, aes(x=date, y = delta))+
 ```
 
 As we can clearly see, there seems to be a strong trend towards warm weather anomalies! Let's explore this relationship further by fitting a linear regression model to the data.
-```{r}
+```{r monthly_model_view}
 
 tidyweather <- tidyweather %>%
   mutate(date = ymd(paste(as.character(Year), Month, "1")), # create `date` variable with lubridate
@@ -133,12 +135,34 @@ ggplot(tidyweather, aes(x=date, y = delta))+
 
 ```
 
-Let's explore how the linear regression model fits the data.
-```{r}
+Let's explore how well the linear regression model fits the data.
+```{r fit_model_monthly}
+# fit linear regression model
+model1 <- lm(delta ~ date , data=tidyweather)
+
+# get statistics to determine how well model fits
+glance(model1) %>%
+  
+  # make a nice HTML table with our custom settings
+  kbl(caption="Summary Statistics of Linear Regression Model (Monthly)") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
 
 ```
 
-Is the effect of increasing temperature more pronounced in some months? Let's have a look: 
+From the 1st table, we can see that the adjusted r-squared is 0.605. This number indicates that the correlation is strong. We can see that the temperature changes by only a slight amount for every date increase, specifically the model suggests that there is a  2.30 x 10^-5 increase in temperature for every month that passes. Although this seems relatively small, a small increase in temperature has a significant effect on the world!
+
+```{r model_monthly_analysis}
+# get p-values
+tidy(model1) %>%
+  
+  # make a nice HTML table with our custom settings
+  kbl(caption="p-values of Linear Regression Model (Monthly)") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+```
+
+This fact is further reinforced by the p-values and t statistics in the second table. The t statistic of the time variable is 50.6, which is alot greater than 2. The p-value is also 0, which is less than 0.05. This indicates that time is indeed significant in determining the weather anomalies. 
+
+This shows that the Is the effect of increasing temperature more pronounced in some months? Let's have a look: 
 
 ```{r facet_wrap, echo=FALSE}
 
@@ -225,6 +249,59 @@ ggplot(average_annual_anomaly, aes(x=year, y= annual_average_delta))+
 
 Once more, the message is pretty clear: global warming is real! 
 
+Let's see how well a linear regression model fits the data. We have fit a linear regression model by month above, so we would think that the model fit to the annual data will give similar results, but let's check!
+
+```{r annual_model_view}
+
+#creating yearly averages
+average_annual_anomaly <- tidyweather %>% 
+  group_by(year) %>%   #grouping data by Year
+  
+  # creating summaries for mean delta 
+  # use `na.rm=TRUE` to eliminate NA (not available) values 
+  summarise(annual_average_delta = mean(delta, na.rm=TRUE)) 
+
+#plotting the data:
+ggplot(average_annual_anomaly, aes(x=year, y= annual_average_delta))+
+  geom_point()+
+  #Fit the best fit line, using lm method
+  geom_smooth(method = "lm") +
+  #change to theme_bw() to have white background + black frame around plot
+  theme_bw() +
+  labs (
+    title = "Global Warming is REAL!!",
+    subtitle = "Average Yearly Anomaly",
+    y     = "Average Annual Delta",
+    caption = "Source: NASA"
+  )                         
+
+
+```
+As we can clearly see, there seems to be a strong trend towards warm weather anomalies! Let's explore this relationship further by fitting a linear regression model to the data.
+
+```{r fit_model_annual}
+# fit linear regression model
+model2 <- lm(annual_average_delta ~ year , data=average_annual_anomaly)
+
+# get statistics to determine how well model fits
+glance(model2) %>%
+  
+  # make a nice HTML table with our custom settings
+  kbl(caption="Summary Statistics of Linear Regression Model (Annual)") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+
+```
+The linear regression model fitting the weather anomalies broken down annually fits better (adjusted r-squared 0.73) than the model fitting weather anomalies broken down monthly (adjusted r-squared 0.60). Let's double check the relationship further by calculating the p-values and t-statistic. 
+
+```{r model_annual_analysis}
+# get p-values
+tidy(model2) %>%
+  
+  # make a nice HTML table with our custom settings
+  kbl(caption="p-values of Linear Regression Model (Annual)") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+```
+Again we can see that the p-value (0<0.05) and t statistic (19>2) indicates that the model is significant. We can also see that the model suggests that there is a 0.008 increase in temperature every year!
 
 ## Confidence Interval for `delta`
 
