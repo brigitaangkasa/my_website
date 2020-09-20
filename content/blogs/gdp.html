@@ -16,8 +16,9 @@ title: How does the GDP differ between developing and developed countries?
 <link href="/rmarkdown-libs/lightable/lightable.css" rel="stylesheet" />
 
 
-<div id="challenge-2gdp-components-over-time-and-among-countries" class="section level1">
-<h1>Challenge 2:GDP components over time and among countries</h1>
+<div id="gdp-components-over-time-and-among-countries" class="section level1">
+<h1>GDP components over time and among countries</h1>
+<p>For this analysis, we want to study the GDP components over time and among countriees.</p>
 <p>At the risk of oversimplifying things, the main components of gross domestic product, GDP are personal consumption (C), business investment (I), government spending (G) and net exports (exports - imports). You can read more about GDP and the different approaches in calculating at the <a href="https://en.wikipedia.org/wiki/Gross_domestic_product">Wikipedia GDP page</a>.</p>
 <p>The GDP data we will look at is from the <a href="https://unstats.un.org/unsd/snaama/Downloads">United Nations’ National Accounts Main Aggregates Database</a>, which contains estimates of total GDP and its components for all countries from 1970 to today. We will look at how GDP and its components have changed over time, and compare different countries and how much each component contributes to that country’s GDP. The file we will work with is <a href="http://unstats.un.org/unsd/amaapi/api/file/6">GDP and its breakdown at constant 2010 prices in US Dollars</a>.</p>
 <pre class="r"><code>UN_GDP_data  &lt;- read_excel(here::here(&quot;data&quot;, &quot;Download-GDPconstant-USD-countries.xls&quot;), # Excel filename
@@ -55,8 +56,8 @@ glimpse(tidy_GDP_data)</code></pre>
 ## $ year          &lt;chr&gt; &quot;1970&quot;, &quot;1971&quot;, &quot;1972&quot;, &quot;1973&quot;, &quot;1974&quot;, &quot;1975&quot;, &quot;1976&quot;,…
 ## $ values        &lt;dbl&gt; 5.56, 5.33, 5.20, 5.75, 6.15, 6.32, 6.37, 6.90, 7.09, 6…</code></pre>
 <pre class="r"><code># Let us compare GDP components for these 3 countries
-country_list &lt;- c(&quot;United States&quot;,&quot;India&quot;, &quot;Germany&quot;)</code></pre>
-<p>Plot Reproduction:</p>
+country_list &lt;- c(&quot;United States&quot;,&quot;Indonesia&quot;, &quot;China&quot;)</code></pre>
+<p>First, let’s focus on the GDP of 3 countries: China, Indonesia, United States. Our rationale for choosing these 3 countries is that we want to compare a highly developed country that is one of the countries that currently leads in the world economy in terms of GDP (United States). We want to also compare the GDP of a rapidly developing economy in Asia, China, and the GDP of an emerging market, Indonesia. Let’s first explore the different components of GDP of these 3 countries.</p>
 <pre class="r"><code># create plot
 tidy_GDP_data %&gt;% 
   # only visualise for countries in the country_list
@@ -85,15 +86,16 @@ tidy_GDP_data %&gt;%
   # bw theme
   theme_bw() +
   # labels (also for the legend)
-  labs(title = &quot;GDP components over time&quot;,
+  labs(title = &quot;United States leads in GDP, followed by China then Indonesia&quot;,
        subtitle = &quot;In constant 2010 USD&quot;,
        x = &quot;&quot;,
        y = &quot;Billion US$&quot;,
        color = &quot;Components of GDP&quot;)</code></pre>
-<p><img src="/blogs/gdp_files/figure-html/challenge_2_1-1.png" width="864" style="display: block; margin: auto;" /></p>
-<p>original Plot:</p>
-<p><img src="/Users/brigitaangkasa/Desktop/1. London Business School/1. Applied Stats with R/my_website1/images/gdp1.png" width="100%" style="display: block; margin: auto;" /></p>
-<p>Secondly, recall that GDP is the sum of Household Expenditure (Consumption <em>C</em>), Gross Capital Formation (business investment <em>I</em>), Government Expenditure (G) and Net Exports (exports - imports). Even though there is an indicator <code>Gross Domestic Product (GDP)</code> in the dataframe, we calculate it given its components discussed above.</p>
+<p><img src="/blogs/gdp_files/figure-html/gdp_over-time-1.png" width="864" style="display: block; margin: auto;" /></p>
+<p>From the graph above, let’s first analyze the GDP of the United States (US). We can see that all components of the have been increasing from 1970. This supports the fact that the US has been the world’s largest economy, accounting for approximately a quarter of the world’s GDP. We can also see that large component of the GDP is household expenditure.</p>
+<p>Moving on to China, we can see that the rate of growth for each component has accelerated from 2000. This is supported by the fact that the country has been rapidly developing over the years, one of which is technological innovations. Technology companies in China are quickly gaining their position as market leaders (ex. Huawei).</p>
+<p>Last but not least, lets analyze Indonesia’s GDP growth over the years. In this chart the growth of Indonesia’s company is not as apparent because of the large GDP of China and the United States. Although Indonesia’s GDP looks small in comparison to the GDP of China and United States there is large potential for exponential growth in the near future as it is the country with the 4th largest population and a rising middle class population.</p>
+<p>Nexts, recall that GDP is the sum of Household Expenditure (Consumption <em>C</em>), Gross Capital Formation (business investment <em>I</em>), Government Expenditure (G) and Net Exports (exports - imports). Even though there is an indicator <code>Gross Domestic Product (GDP)</code> in the dataframe, let’s compare the results by calculating it given its components discussed above.</p>
 <pre class="r"><code># wrangle data and calculate GDP
 tidy_GDP_data_2 &lt;- tidy_GDP_data %&gt;% 
   # bring in wide format to easily calculate GDP
@@ -105,11 +107,11 @@ tidy_GDP_data_2 &lt;- tidy_GDP_data %&gt;%
 
 # summary statistics
 mosaic::favstats(~`Percentage Change`, data=tidy_GDP_data_2) %&gt;% 
-  kbl(caption = &quot;overall summary statistics for the % difference between calculated and included GDP&quot;) %&gt;%
+  kbl(caption = &quot;Overall summary statistics for the % difference between calculated and included GDP&quot;) %&gt;%
   kable_styling(bootstrap_options = c(&quot;striped&quot;, &quot;hover&quot;, &quot;condensed&quot;, &quot;responsive&quot;)) # have a nice HTML table</code></pre>
 <table class="table table-striped table-hover table-condensed table-responsive" style="margin-left: auto; margin-right: auto;">
 <caption>
-(#tab:GDP_calculation)overall summary statistics for the % difference between calculated and included GDP
+Overall summary statistics for the % difference between calculated and included GDP
 </caption>
 <thead>
 <tr>
@@ -178,12 +180,8 @@ missing
 </tr>
 </tbody>
 </table>
-<pre class="r"><code># summary statistics
-#mosaic::favstats(`Percentage Change`~year, data=tidy_GDP_data_2) %&gt;% 
-#  kbl(caption = &quot;summary statistics for the % difference between calculated and included GDP per year&quot;) %&gt;%
-#  kable_styling(bootstrap_options = c(&quot;striped&quot;, &quot;hover&quot;, &quot;condensed&quot;, &quot;responsive&quot;)) # have a nice HTML table</code></pre>
-<p>As we can see, the % difference of the two GDPs is in most cases around 0, i.e. both GDPs are in most cases approximately the same.</p>
-<p>Plot Reproduction:</p>
+<p>As we can see, the % difference of the two GDPs is in most cases around 0, i.e. both GDPs are in most cases approximately the same. Thus, we can use the component parts of the GDP to accurately estimate the GDP.</p>
+<p>Let’s further analyze the GDP breakdown, by looking at the proportion each GDP component part accounts for the total GDP.</p>
 <pre class="r"><code># prepare data and plot
 tidy_GDP_data_2 %&gt;% 
   # calculate the percentage values
@@ -221,5 +219,15 @@ tidy_GDP_data_2 %&gt;%
        y = &quot;proportion&quot;) +
   # no legend title
   theme(legend.title = element_blank())</code></pre>
-<p><img src="/blogs/gdp_files/figure-html/challenge_2_2-1.png" width="1152" style="display: block; margin: auto;" /></p>
+<p><img src="/blogs/gdp_files/figure-html/proportion_gdp-1.png" width="1152" style="display: block; margin: auto;" />
+First, let’s have a look at the net export proportion. In China, there seems to be a trend towards equal number of exports and imports, then starting from 1985 the trend has shifted to higher exports. However, net exports can be seen to slowly decrease over the last few years, and there seems to be an equal number of exports and imports over the last few years. Indonesia relied heavily on exports from the period of 1970 to 1980, but it can be seen that from 1980 onwards the number of imports and exports have reached an equal amounts of imports and exports. In the United States, there is a trend towards higher imports as opposed to lower exports this may be accounted by the fact that they are one of the largest economies in the world.</p>
+<p>Regarding the proportion of gross capital formation, i.e. investments, we can see that there is a sharp rise in Indonesia between 1970 to 1985. We can also see a sharp drop from 1995 to 2000 this may be because of high levels of corruption in the country when Suharto was president. The GCF in Indonesia is predicted to increase in next few years as the government is currently focusing on plans to improve the poor infrastructure of the country. Both in the US and China, the proportion of GCF is also slightly rising.</p>
+<p>The proportion of Government expenditure is quite steady in Indonesia and China, whereas it dropped in the US.</p>
+<p>Finally, household expenditure dropped significantly in China (with the investments going up), wheres they are steady in Germany and rising in the US and Indonesia.</p>
+<p>All in all, we can conclude the following:</p>
+<ul>
+<li>In China, gross capital formation has increased while household expenditure have decreased.</li>
+<li>In Indonesia, businesses are more and more investing, while the household expenditure rate have dropped over the last 10 years.</li>
+<li>While government expenditure rates drop, households and businesses (have to) invest more in the US. This can be well explained by the rise of neo-liberalism and a lower influence of the public sector</li>
+</ul>
 </div>
