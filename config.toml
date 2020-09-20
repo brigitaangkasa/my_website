@@ -111,7 +111,7 @@ disqusShortname = ""
 
     [[params.tiles.showcase]]
       title = "Project xx: In Progress"
-      subtitle = "Launching soon!"
+      subtitle = "Stay tuned!"
       image = "wip.jpg"
       #url = "blogs/ipsum"
       
