@@ -1,0 +1,599 @@
+---
+categories:
+- ""
+- ""
+date: "2020-09-15"
+description: Financial Stocks
+draft: false
+image: bannerstock.jpg
+keywords: ""
+slug: financialstock
+title: What is the relationship between risk and return on financial stocks?
+---
+
+<script src="/rmarkdown-libs/kePrint/kePrint.js"></script>
+<link href="/rmarkdown-libs/lightable/lightable.css" rel="stylesheet" />
+
+
+<div id="returns-of-financial-stocks" class="section level1">
+<h1>Returns of financial stocks</h1>
+<p>As we have to pay rather high tuition fees, our idea is to make some money with stocks. We want to download some data for interesting companies that are listed at the NYSE and examine risks and returns!
+But in order to download the financial data, we first have to consider the mapping of company names to stock symbols.</p>
+<pre class="r"><code>#load data on stocks on nyse using read_csv
+nyse &lt;- read_csv(here::here(&quot;data&quot;,&quot;nyse.csv&quot;))</code></pre>
+<p>Now that we have this data, let’s have a quick look at the number of companies per sector.</p>
+<pre class="r"><code># pipe nyse data into newly defined companies_by_sector data frame
+companies_by_sector &lt;- nyse %&gt;%
+  
+  #group companies by sector
+  group_by(sector) %&gt;%
+  
+  # count the number of companies by sector
+  count() %&gt;% 
+  # arrange sectors in descending order in terms of number of companies in each sector 
+  arrange(desc(n))
+
+companies_by_sector %&gt;% 
+  # rename for better reading
+  rename(`number of companies` = n) %&gt;% 
+  
+  # create nice html table
+  kbl() %&gt;%
+  kable_styling(bootstrap_options = c(&quot;striped&quot;, &quot;hover&quot;, &quot;condensed&quot;, &quot;responsive&quot;)) # have a nice HTML table</code></pre>
+<table class="table table-striped table-hover table-condensed table-responsive" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+sector
+</th>
+<th style="text-align:right;">
+number of companies
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Finance
+</td>
+<td style="text-align:right;">
+97
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Consumer Services
+</td>
+<td style="text-align:right;">
+79
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Public Utilities
+</td>
+<td style="text-align:right;">
+60
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Capital Goods
+</td>
+<td style="text-align:right;">
+45
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Health Care
+</td>
+<td style="text-align:right;">
+45
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Energy
+</td>
+<td style="text-align:right;">
+42
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Technology
+</td>
+<td style="text-align:right;">
+40
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Basic Industries
+</td>
+<td style="text-align:right;">
+39
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Consumer Non-Durables
+</td>
+<td style="text-align:right;">
+31
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Miscellaneous
+</td>
+<td style="text-align:right;">
+12
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Transportation
+</td>
+<td style="text-align:right;">
+10
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Consumer Durables
+</td>
+<td style="text-align:right;">
+8
+</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code># create bar chart showing number of companies per sector
+ggplot(companies_by_sector, aes(x = n, y = reorder(sector, n)))+
+  geom_col() + 
+  labs(title = &quot;Number of NYSE companies per sector&quot;,
+       x = &quot;number of companies&quot;,
+       y = &quot;sector&quot;)</code></pre>
+<p><img src="/blogs/financialstock_files/figure-html/companies_per_sector-1.png" width="648" style="display: block; margin: auto;" /></p>
+<p>Next, let’s choose some stocks and their ticker symbols and download some data. Note that <code>SPY</code> is the SP500 ETF (Exchange Traded Fund).</p>
+<pre class="r"><code># filter for 6 stocks and 1 ETF of interest
+myStocks &lt;- c(&quot;AXP&quot;,&quot;BLK&quot;,&quot;KO&quot;,&quot;FDX&quot;,&quot;MCD&quot;,&quot;ORCL&quot;,&quot;SPY&quot; ) %&gt;%
+  tq_get(get  = &quot;stock.prices&quot;,
+         from = &quot;2011-01-01&quot;,
+         to   = &quot;2020-08-31&quot;) %&gt;%
+  
+  # group data by stock symbols
+  group_by(symbol) 
+
+# examine the structure of the resulting data frame
+glimpse(myStocks) </code></pre>
+<pre><code>## Rows: 17,017
+## Columns: 8
+## Groups: symbol [7]
+## $ symbol   &lt;chr&gt; &quot;AXP&quot;, &quot;AXP&quot;, &quot;AXP&quot;, &quot;AXP&quot;, &quot;AXP&quot;, &quot;AXP&quot;, &quot;AXP&quot;, &quot;AXP&quot;, &quot;AXP…
+## $ date     &lt;date&gt; 2011-01-03, 2011-01-04, 2011-01-05, 2011-01-06, 2011-01-07,…
+## $ open     &lt;dbl&gt; 43.3, 44.4, 44.1, 45.4, 44.9, 44.2, 45.0, 45.4, 44.8, 44.9, …
+## $ high     &lt;dbl&gt; 43.6, 44.4, 45.2, 45.6, 45.0, 44.6, 45.4, 45.8, 45.4, 46.6, …
+## $ low      &lt;dbl&gt; 43.1, 43.2, 43.9, 44.5, 44.0, 44.0, 44.8, 44.8, 44.8, 44.9, …
+## $ close    &lt;dbl&gt; 43.4, 44.0, 45.0, 44.7, 44.4, 44.5, 45.0, 45.0, 45.1, 46.2, …
+## $ volume   &lt;dbl&gt; 7633300, 14066300, 10655300, 6347100, 6387800, 5468000, 5924…
+## $ adjusted &lt;dbl&gt; 37.5, 38.0, 39.1, 38.9, 38.5, 38.6, 39.1, 39.1, 39.1, 40.2, …</code></pre>
+<p>Financial performance analysis depends on returns. Hence, we first want to calculate daily and monthly returns (given the adjusted closing prices).</p>
+<pre class="r"><code>#calculate daily returns
+myStocks_returns_daily &lt;- myStocks %&gt;%
+  tq_transmute(select     = adjusted, 
+               mutate_fun = periodReturn, 
+               period     = &quot;daily&quot;, 
+               type       = &quot;log&quot;,
+               col_rename = &quot;daily_returns&quot;,
+               cols = c(nested.col))  
+
+#calculate monthly  returns
+myStocks_returns_monthly &lt;- myStocks %&gt;%
+  tq_transmute(select     = adjusted, 
+               mutate_fun = periodReturn, 
+               period     = &quot;monthly&quot;, 
+               type       = &quot;arithmetic&quot;,
+               col_rename = &quot;monthly_returns&quot;,
+               cols = c(nested.col)) 
+
+#calculate yearly returns
+myStocks_returns_annual &lt;- myStocks %&gt;%
+  group_by(symbol) %&gt;%
+  tq_transmute(select     = adjusted, 
+               mutate_fun = periodReturn, 
+               period     = &quot;yearly&quot;, 
+               type       = &quot;arithmetic&quot;,
+               col_rename = &quot;yearly_returns&quot;,
+               cols = c(nested.col))</code></pre>
+<p>To get a feeling for the numbers, let’s summarise monthly returns for each of the stocks and the <code>SPY</code> ETF:</p>
+<pre class="r"><code>myStocks_returns_monthly_summary &lt;- myStocks_returns_monthly %&gt;% 
+  group_by(symbol) %&gt;% 
+  summarise(min = min(monthly_returns), 
+            median = median(monthly_returns), 
+            max = max(monthly_returns), 
+            mean = mean(monthly_returns), 
+            sd = sd(monthly_returns)) # calculate summary statistics for monthly returns by stock
+
+myStocks_returns_monthly_summary %&gt;% 
+  kbl() %&gt;%
+  kable_styling(bootstrap_options = c(&quot;striped&quot;, &quot;hover&quot;, &quot;condensed&quot;, &quot;responsive&quot;)) # have a nice HTML table</code></pre>
+<table class="table table-striped table-hover table-condensed table-responsive" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+symbol
+</th>
+<th style="text-align:right;">
+min
+</th>
+<th style="text-align:right;">
+median
+</th>
+<th style="text-align:right;">
+max
+</th>
+<th style="text-align:right;">
+mean
+</th>
+<th style="text-align:right;">
+sd
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+AXP
+</td>
+<td style="text-align:right;">
+-0.227
+</td>
+<td style="text-align:right;">
+0.011
+</td>
+<td style="text-align:right;">
+0.132
+</td>
+<td style="text-align:right;">
+0.011
+</td>
+<td style="text-align:right;">
+0.060
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+BLK
+</td>
+<td style="text-align:right;">
+-0.144
+</td>
+<td style="text-align:right;">
+0.022
+</td>
+<td style="text-align:right;">
+0.183
+</td>
+<td style="text-align:right;">
+0.014
+</td>
+<td style="text-align:right;">
+0.062
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+FDX
+</td>
+<td style="text-align:right;">
+-0.293
+</td>
+<td style="text-align:right;">
+0.015
+</td>
+<td style="text-align:right;">
+0.318
+</td>
+<td style="text-align:right;">
+0.011
+</td>
+<td style="text-align:right;">
+0.077
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+KO
+</td>
+<td style="text-align:right;">
+-0.165
+</td>
+<td style="text-align:right;">
+0.012
+</td>
+<td style="text-align:right;">
+0.084
+</td>
+<td style="text-align:right;">
+0.007
+</td>
+<td style="text-align:right;">
+0.041
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+MCD
+</td>
+<td style="text-align:right;">
+-0.148
+</td>
+<td style="text-align:right;">
+0.012
+</td>
+<td style="text-align:right;">
+0.139
+</td>
+<td style="text-align:right;">
+0.012
+</td>
+<td style="text-align:right;">
+0.044
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+ORCL
+</td>
+<td style="text-align:right;">
+-0.182
+</td>
+<td style="text-align:right;">
+0.010
+</td>
+<td style="text-align:right;">
+0.143
+</td>
+<td style="text-align:right;">
+0.008
+</td>
+<td style="text-align:right;">
+0.056
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+SPY
+</td>
+<td style="text-align:right;">
+-0.125
+</td>
+<td style="text-align:right;">
+0.015
+</td>
+<td style="text-align:right;">
+0.127
+</td>
+<td style="text-align:right;">
+0.011
+</td>
+<td style="text-align:right;">
+0.038
+</td>
+</tr>
+</tbody>
+</table>
+<p>To get an even better feeling, let’s also visualise the distribution of monthly returns for each of the stocks:</p>
+<pre class="r"><code>myStocks_returns_monthly %&gt;% 
+  filter(symbol != &quot;SPY&quot;) %&gt;% # only display density of the stocks (not the ETF)
+  ggplot(aes(x = monthly_returns, fill = symbol)) + # add some color (fill) just for fun
+  geom_density() + 
+  facet_wrap(~symbol) + # create a density plot for each stock
+  labs(title = &quot;Distribution of monthly returns per stock&quot;, 
+       x = &quot;monthly returns&quot;) +
+  theme(legend.position = &quot;none&quot;) # show no legend</code></pre>
+<p><img src="/blogs/financialstock_files/figure-html/density_monthly_returns-1.png" width="648" style="display: block; margin: auto;" />
+We can see that deviation from 0.0 is strongest for Blackrock (BLK). Hence, the stock is highly volatile and thus the riskiest.
+Opposed to this, the stock of Coca Cola (KO) is quite steady and risk averse, with only small changes in monthly return. Hence, this stock is the least risky.</p>
+<p>However, it is not only about risk, but also about returns. Hence, let’s plot the risk/return profiles of our stocks!</p>
+<pre class="r"><code>myStocks_returns_monthly_summary %&gt;% 
+  
+  # only display the stocks (not the ETF)
+  filter(symbol != &quot;SPY&quot;) %&gt;% 
+  
+  # plot scatterplot and increase size of points
+  ggplot(aes(x=sd, y = mean, label = symbol)) +
+  geom_point(aes(colour = symbol), size = 4) +
+  
+  # add the stock names as labels to the points
+  ggrepel::geom_text_repel(aes(colour = symbol)) + 
+  
+  # add title and axis labels to graph 
+  labs(title = &#39;Risk/Return profile of stocks&#39;, 
+       x = &#39;Risk (stdev of monthly returns)&#39;, 
+       y =&quot;Average monthly return&quot;) +
+  
+  # use a nice theme
+  theme_bw() + 
+  
+  # display x values as percentages
+  scale_x_continuous(labels = scales::percent) + 
+  
+  # display y values as percentages
+  scale_y_continuous(labels = scales::percent) + 
+  
+  # hide legend
+  theme(legend.position = &quot;none&quot;) </code></pre>
+<p><img src="/blogs/financialstock_files/figure-html/risk_return_plot-1.png" width="648" style="display: block; margin: auto;" /></p>
+<p>As a thumb of rule, taking a higher risk is rewarded with a higher average monthly return.
+We can see that even though FedEx (FDX) has the highest risk, it does not have the highest average monthly return.
+Furthermore, Blackrock (BLK) has the highest average monthly return, with only a little more risk than American Express (AXP) and Oracle (ORCL).
+Regarding our goal of making money with stocks, we would thus choose a combination of Blackrock and the lower risk McDonald’s (MCD), as they are above our risk-return line.</p>
+<p>From the graph, we can see that American Express (AXP) generates a higher average monthly return on average with just a little bit more risk than Oracle (ORCL). Thus, let’s investigate whether this risk is worth pursuing by looking at whether the difference in return is significant!</p>
+<pre class="r"><code>axp_orcl&lt;-myStocks_returns_monthly %&gt;%
+  group_by(symbol) %&gt;%
+    filter(symbol %in% c(&quot;AXP&quot;,
+                         &quot;ORCL&quot;)) %&gt;%
+  
+  # calculate average returns per month
+  summarise(average_return=mean(monthly_returns,na.rm=TRUE), 
+            
+            # calculate SD
+            SD = sd(monthly_returns), 
+            
+            # calculate count
+            count = n(), 
+            
+            # get t-critical value with (count-1) degrees of freedom
+            t_critical = qt(0.975, count - 1), 
+            
+            # calculate standard error
+            SE =  SD/sqrt(count), 
+            
+            # calculate margin of error
+            margin_of_error = t_critical * SE, 
+            
+            # calculate lower bound of CI
+            lower_ci = average_return - margin_of_error, 
+            
+            # calculate upper bound of CI
+            upper_ci = average_return + margin_of_error) %&gt;% 
+  
+  # have a nice HTML table
+  kbl(caption = &quot;Confidence Intervals of Returns of AXP and ORCL&quot;) %&gt;%
+  kable_styling(bootstrap_options = c(&quot;striped&quot;, &quot;hover&quot;, &quot;condensed&quot;, &quot;responsive&quot;)) </code></pre>
+<p>From the table above, we can see that the confidence interval for AXP is [0.000,0.022] and for ORCL [-0.002,0.018], which shows that the two confidence interval overlap. From this we can infer that the difference of the average returns of the 2 stocks are not that significant, so it may not be worth the risk to invest in AXP.</p>
+<p>The AXP and ORCL monthly return data suggests that greater risk does not necessarily indicate higher returns. As this is not what we were expecting, let’s explore the relationship between risk and return further, let’s plot the risk and return of all the stocks in the nyse! This way we can also increase the sample size when exploring the relationship, which will give us a more granular insight! First, let’s prepare the data so that all stocks are included.</p>
+<pre class="r"><code># filter for all stocks
+allStocks &lt;- nyse %&gt;%
+  tq_get(get  = &quot;stock.prices&quot;,
+         from = &quot;2011-01-01&quot;,
+         to   = &quot;2020-08-31&quot;) %&gt;%
+  
+    group_by(symbol) 
+
+#calculate daily returns
+allStocks_returns_daily &lt;- allStocks %&gt;%
+  tq_transmute(select     = adjusted, 
+               mutate_fun = periodReturn, 
+               period     = &quot;daily&quot;, 
+               type       = &quot;log&quot;,
+               col_rename = &quot;daily_returns&quot;,
+               cols = c(nested.col))  
+
+#calculate monthly  returns
+allStocks_returns_monthly &lt;- allStocks %&gt;%
+  tq_transmute(select     = adjusted, 
+               mutate_fun = periodReturn, 
+               period     = &quot;monthly&quot;, 
+               type       = &quot;arithmetic&quot;,
+               col_rename = &quot;monthly_returns&quot;,
+               cols = c(nested.col)) 
+
+#calculate yearly returns
+allStocks_returns_annual &lt;- allStocks %&gt;%
+  group_by(symbol) %&gt;%
+  tq_transmute(select     = adjusted, 
+               mutate_fun = periodReturn, 
+               period     = &quot;yearly&quot;, 
+               type       = &quot;arithmetic&quot;,
+               col_rename = &quot;yearly_returns&quot;,
+               cols = c(nested.col))
+
+# calculate summary statistics for monthly returns by stock
+allStocks_returns_monthly_summary &lt;- allStocks_returns_monthly %&gt;% 
+  group_by(symbol) %&gt;% 
+  summarise(min = min(monthly_returns), 
+            median = median(monthly_returns), 
+            max = max(monthly_returns), 
+            mean = mean(monthly_returns), 
+            sd = sd(monthly_returns)) </code></pre>
+<p>Now that we have processed the data, let’s analyze it!</p>
+<pre class="r"><code># join return monthly summary table to original nyse table to get sector information 
+summary_sector&lt;-allStocks_returns_monthly_summary %&gt;% 
+  
+  # join with nyse data to get sector information
+  inner_join(nyse) %&gt;%
+  
+  # only display the stocks (not the ETF)
+  filter(symbol != &quot;SPY&quot;) 
+  
+  # plot scatterplot and increase size of points
+  ggplot(summary_sector,aes(x=sd, y = mean, label = symbol)) +
+  geom_point(aes(colour = sector), size = 1) +
+  
+  # add title and axis labels to graph 
+  labs(title = &#39;Upward Trend can be seen on Risk/Return profile of NYSE stocks&#39;, 
+       x = &#39;Risk (stdev of monthly returns)&#39;, 
+       y =&quot;Average monthly return&quot;) +
+  
+  # use a nice theme
+  theme_bw() + 
+  
+  # display x values as percentages
+  scale_x_continuous(labels = scales::percent) + 
+  
+  # display y values as percentages
+  scale_y_continuous(labels = scales::percent) + 
+  
+  # hide legend
+  theme(legend.position = &quot;right&quot;) </code></pre>
+<p><img src="/blogs/financialstock_files/figure-html/stocks_analysis-1.png" width="648" style="display: block; margin: auto;" /></p>
+<p>From the trend line we can see a positive correlation, similar to the positive correlation we saw with our sample of 6 stocks. Let’s see how the risk and return relationship differs between sectors.</p>
+<pre class="r"><code>  # plot scatterplot and increase size of points
+  ggplot(summary_sector,aes(x=sd, y =mean)) +
+  geom_point(size = 1) +
+  
+  # broken down by sector
+  facet_wrap(~sector) +
+  
+  # add title and axis labels to graph 
+  labs(title = &#39;Risk/Return Relationship Differs Between Sectors!&#39;, 
+       x = &#39;Risk (stdev of monthly returns)&#39;, 
+       y =&quot;Average monthly return&quot;) +
+  
+  # use a nice theme
+  theme_bw() + 
+  
+  # display x values as percentages
+  scale_x_continuous(labels = scales::percent) + 
+  
+  # display y values as percentages
+  scale_y_continuous(labels = scales::percent) + 
+  
+  # hide legend
+  theme(legend.position = &quot;right&quot;) </code></pre>
+<p><img src="/blogs/financialstock_files/figure-html/stocks_analysis_sector-1.png" width="648" style="display: block; margin: auto;" /></p>
+<p>Generally, the higher the risk, the higher the average monthly return. However, from the faceted risk return graphs above we can see that this relationship is stronger and more apparent for some sectors than others. In the Capital Goods, Consumer Durables, and Technology sector we can see that this relationship is true. However, in the other 9 sectors, this relationship does not seem to exist; as the risk increases, the returns don’t seem to increase. Let’s deep dive on the the risks between each sector by creating a bar chart of sector vs. risk.</p>
+<pre class="r"><code>summary_sector %&gt;%
+  
+  # group by sector
+  group_by(sector) %&gt;%
+  
+  # calculate average risk of each sector
+  summarise(mean_risk = mean(sd)) %&gt;%
+  
+  # plot bar chart showing risk in each sector
+  ggplot(aes(x = mean_risk, y = reorder(sector,mean_risk))) +
+  
+  # display x values as percentages
+  scale_x_continuous(labels = scales::percent) + 
+  
+  # plot bar chart
+  geom_col() +
+  
+  # use a nice theme
+  theme_bw() + 
+  
+  # add title and axis labels to graph 
+  labs(y = &quot;&quot;, 
+       x = &quot;Risk (%)&quot;,
+       title = &quot;Technology and Energy Stocks have the Highest Risks&quot;)</code></pre>
+<p><img src="/blogs/financialstock_files/figure-html/unnamed-chunk-1-1.png" width="648" style="display: block; margin: auto;" />
+From the chart above, we can see that stocks in the Technology, Energy, and Consumer Durables (top 3) sector have the highest risk. We saw in the previous chart that there is a upward trend between risk and return for the Technology and Consumer Durables sector. Thus, it may be worth to invest in stocks in the Technology and Consumer Durables sector as we can expect higher returns with higher risks.</p>
+<p>However, we saw that the return remains constant for stocks of different risks. Thus, it may be not worth to invest in stocks in the higher risk Energy stocks.</p>
+<p>As a next step, we would choose stocks that offer the highest return with the lowest risks. In addition, we would also choose stocks from different sectors as risk is dependent on the sector of interest. I will ensure to include higher risks Technology stocks and Consumer Durables, and lower risk stocks in the other sectors. But of course, we will still need to conduct qualitative research to gain a deeper understanding of the context of the current market!</p>
+</div>

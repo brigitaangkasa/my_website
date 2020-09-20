@@ -1,0 +1,319 @@
+---
+categories:
+- ""
+- ""
+date: "2020-09-15"
+description: Climate Change
+draft: false
+image: tree.jpg
+keywords: ""
+slug: climatechange
+title: Is global warming real or a hoax?
+
+---
+
+
+```{r, setup, echo=FALSE}
+knitr::opts_chunk$set(
+  message = FALSE, 
+  warning = FALSE, 
+  tidy=FALSE,     # display code as typed
+  size="small")   # slightly smaller font for code
+options(digits = 3)
+# default figure size
+knitr::opts_chunk$set(
+  fig.width=6.75, 
+  fig.height=6.75,
+  fig.align = "center"
+)
+```
+
+
+```{r load-libraries, warning=FALSE, message=FALSE, echo=FALSE}
+library(tidyverse)  # Load ggplot2, dplyr, and all the other tidyverse packages
+library(mosaic)
+library(ggthemes)
+library(lubridate)
+library(here)
+library(skimr)
+library(janitor)
+library(httr)
+library(readxl)
+library(vroom)
+library(kableExtra)
+library(infer)
+```
+
+
+# Climate change and temperature anomalies 
+
+We want to study climate change and gratefully find data on the *Combined Land-Surface Air and Sea-Surface Water Temperature Anomalies* in the Northern Hemisphere at [NASA's Goddard Institute for Space Studies](https://data.giss.nasa.gov/gistemp). The [tabular data of temperature anomalies can be found here](https://data.giss.nasa.gov/gistemp/tabledata_v3/NH.Ts+dSST.txt).
+
+To define temperature anomalies, we need to have a reference, or base period, which NASA clearly states that it is the period between 1951-1980.
+
+Let's load the data and have a look!
+
+```{r weather_data, cache=TRUE}
+
+weather <- 
+  read_csv("https://data.giss.nasa.gov/gistemp/tabledata_v3/NH.Ts+dSST.csv", 
+           skip = 1, # start in row 2
+           na = "***") # recognize *** as NAs
+
+```
+
+For each month and year, the dataframe shows the deviation of temperature from the normal (expected). Furthermore, the dataframe is in wide format. Hence, we first bring it into long format, which makes it easier to analyse the data:
+
+```{r tidyweather}
+
+# bring data in tidy format
+tidyweather <- weather %>%
+  # only use year and month columns
+  select(Year:Dec) %>%
+  # bring into long format
+  pivot_longer(cols = Jan:Dec, names_to = "Month", values_to = "delta") 
+
+# print 10 rows of the table to have a look at the transformed data
+tidyweather %>% 
+  head(10) %>% 
+  kbl	() %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+
+```
+
+```{r glimpse_tidyweather}
+
+glimpse(tidyweather)
+
+```
+
+Note that `Year` and `Month` are stored as `double` and `character` variables (and not as `date` variables).
+
+
+## Plotting Information
+
+To be able to create a nice time series plot, we first need to create a new variable called `date`, in order to ensure that the `delta` values are plot chronologically. 
+
+```{r scatter_plot}
+
+tidyweather <- tidyweather %>%
+  mutate(date = ymd(paste(as.character(Year), Month, "1")), # create `date` variable with lubridate
+         month = month(date, label=TRUE),
+         year = year(date))
+
+# plot a timeseries scatterplot of all the deltas
+ggplot(tidyweather, aes(x=date, y = delta))+
+  geom_point() +
+  geom_smooth(color="red") + # add smoothed red line
+  theme_bw() +
+  labs (
+    title = "Increasing Weather Anomalies Demonstrating Global Warming",
+    caption = "Source: NASA"
+  )
+
+```
+
+As we can clearly see, there seems to be a strong trend towards warm weather anomalies! Let's explore this relationship further by fitting a linear regression model to the data.
+```{r}
+
+tidyweather <- tidyweather %>%
+  mutate(date = ymd(paste(as.character(Year), Month, "1")), # create `date` variable with lubridate
+         month = month(date, label=TRUE),
+         year = year(date))
+
+# plot a timeseries scatterplot of all the deltas
+ggplot(tidyweather, aes(x=date, y = delta))+
+  geom_point() +
+  geom_smooth(method="lm",color="red") + # add smoothed red line
+  theme_bw() +
+  labs (
+    title = "Increasing Weather Anomalies Demonstrating Global Warming",
+    caption = "Source: NASA"
+  )
+
+```
+
+Let's explore how the linear regression model fits the data.
+```{r}
+
+```
+
+Is the effect of increasing temperature more pronounced in some months? Let's have a look: 
+
+```{r facet_wrap, echo=FALSE}
+
+# plot weather anomalies faceted by month
+ggplot(tidyweather, aes(x=date, y = delta))+
+  geom_point() +
+  facet_wrap(~month) + # facet by month (the lubridate month!)
+  geom_smooth(color="red") + # add red smoothed line
+  theme_bw() +
+  labs (
+    title = "Increasing Weather Anomalies for All Months",
+    caption = "Source: NASA"
+  )
+
+```
+
+We can see that the effect is almost the same for every month!
+
+As a next step for our analysis of global warming, we group the years into bigger periods:
+
+```{r intervals}
+
+comparison <- tidyweather %>% 
+  filter(Year>= 1881) %>%     #remove years prior to 1881
+  #create new variable 'interval', and assign values based on criteria below:
+  mutate(interval = case_when(
+    Year %in% c(1881:1920) ~ "1881-1920",
+    Year %in% c(1921:1950) ~ "1921-1950",
+    Year %in% c(1951:1980) ~ "1951-1980",
+    Year %in% c(1981:2010) ~ "1981-2010",
+    TRUE ~ "2011-present"
+  ))
+
+```
+
+Using our new `interval` variable, we are able to create a density plot to study the distribution of monthly deviations, grouped by the different time periods.
+
+```{r density_plot}
+
+ggplot(comparison, aes(x=delta, fill=interval))+
+  geom_density(alpha=0.2) +   # density plot with transparency set to 20%
+  theme_bw() +                # theme
+  labs (
+    title = "The Bells are getting Louder!",
+    subtitle = "Density Plot for Monthly Temperature Anomalies",
+    y     = "Density",         # changing y-axis label to sentence case
+    caption = "Source: NASA"
+  )
+
+```
+
+Again, we can clearly recognize the pattern of global warming!
+
+So far, we have been working with monthly anomalies. However, we are also interested in average annual anomalies.
+
+Let's have a look, how they look like:
+
+```{r averaging}
+
+#creating yearly averages
+average_annual_anomaly <- tidyweather %>% 
+  group_by(year) %>%   #grouping data by Year
+  
+  # creating summaries for mean delta 
+  # use `na.rm=TRUE` to eliminate NA (not available) values 
+  summarise(annual_average_delta = mean(delta, na.rm=TRUE)) 
+
+#plotting the data:
+ggplot(average_annual_anomaly, aes(x=year, y= annual_average_delta))+
+  geom_point()+
+  #Fit the best fit line, using LOESS method
+  geom_smooth(method = "loess") +
+  #change to theme_bw() to have white background + black frame around plot
+  theme_bw() +
+  labs (
+    title = "Global Warming is REAL!!",
+    subtitle = "Average Yearly Anomaly",
+    y     = "Average Annual Delta",
+    caption = "Source: NASA"
+  )                         
+
+
+```
+
+Once more, the message is pretty clear: global warming is real! 
+
+
+## Confidence Interval for `delta`
+
+[NASA points out on their website](https://earthobservatory.nasa.gov/world-of-change/decadaltemp.php) that 
+
+> A one-degree global change is significant because it takes a vast amount of heat to warm all the oceans, atmosphere, and land by that much. In the past, a one- to two-degree drop was all it took to plunge the Earth into the Little Ice Age.
+
+So, do we already deal with a one-degree global change? For this purpose, we calculate a confidence interval for the time between 2011-present.
+
+First, we want to do this using traditional formulas:
+
+```{r calculate_CI_using_formula}
+
+formula_ci <- comparison %>% 
+  # choose the interval 2011-present
+  filter(interval == "2011-present", !is.na(delta)) %>%
+  # calculate summary statistics for temperature deviation (delta) 
+  # calculate mean, SD, count, SE, margin of error and lower/upper 95% CI
+  summarise(mean_delta = mean(delta),
+            sd_delta = sd(delta),
+            count = n(),
+            # get t-critical value with (n-1) degrees of freedom
+            t_critical = qt(0.975, count-1),
+            se_delta = sd_delta/sqrt(count),
+            margin_of_error = t_critical * se_delta,
+            delta_low = mean_delta - margin_of_error,
+            delta_high = mean_delta + margin_of_error
+  ) 
+
+#print out formula_CI
+formula_ci %>% 
+  select(delta_low, mean_delta, delta_high) %>% # only show relevant columns
+  rename(`lower bound` = delta_low, `mean delta` = mean_delta, `upper bound` = delta_high) %>% # create readable names
+  kbl(caption = "confidence interval for mean delta since 2011 (formula)") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) # have a nice HTML table
+
+```
+Hence, we get an average delta of 0.966 and a confidence interval of [0.915, 1.02] under 97.5% confidence. As we can see, it seems not unlikely that there already is a one-degree global warming!
+
+However, some people trust more into the simulation skills of their computers than into mathematical formulas. Hence, let's calculate the confidence interval using bootstrapping!
+
+```{r calculate_CI_using_bootstrap}
+
+# use the infer package to construct a 95% CI for delta
+
+set.seed(1234)
+
+boot_weather <- comparison %>%
+  # Choose only 2011-present period
+  filter(interval == "2011-present", !is.na(delta)) %>%
+  # Specify the variable of interest
+  specify(response = delta) %>%
+  # Generate a bunch of bootstrap samples
+  generate(reps = 1000, type = "bootstrap") %>%
+  # Find the mean of each sample
+  calculate(stat = "mean")
+
+# calculate confidence interval
+percentile_ci <- boot_weather %>%
+  get_ci(level=0.95, type="percentile")
+
+# print out confidence interval
+percentile_ci %>% 
+  rename(`lower bound` = lower_ci, `upper bound` = upper_ci) %>% # create readable names
+  kbl(caption = "confidence interval for mean delta since 2011 (simulated)") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) # have a nice HTML table
+
+```
+
+```{r visualise_ci_bootstrap}
+# visualise both confidence intervals and the bootstrap distribution
+ggplot(boot_weather, aes(x = stat)) +
+  geom_histogram() +
+  labs(title= "Bootstrap distribution of means with confidence intervals \nshow similar results to formula confidence intervals") +
+  # add confidence interval bounds as vertical lines
+  geom_vline(aes(xintercept = percentile_ci$lower_ci, colour = 'bootstrap CI'), linetype = 2, size = 1.1) +
+  geom_vline(aes(xintercept = percentile_ci$upper_ci, colour = 'bootstrap CI'), linetype = 2, size = 1.1) +
+  geom_vline(aes(xintercept = formula_ci$delta_low, colour = 'formula CI'), linetype = 1, size = 1.1) +
+  geom_vline(aes(xintercept = formula_ci$delta_high, colour = 'formula CI'), linetype = 1, size = 1.1) +
+  # change color of the lines
+  scale_color_manual(name = NULL, values = c(`bootstrap CI` = "red", `formula CI` = "orange")) +
+  theme_bw()
+
+```
+
+We can see that the simulated CI and the mathematically calculated CI are very similar.  
+
+For the simulated CI, we resampled our sample 1000 times with replication (--> bootstrapping). 
+
+For each of these 1000 "new" samples, we then calculated the average delta and obtained the bootstrap distribution as depicted above.  
+
+With the help of this simulated / approximated sample distribution (distribution of the mean delta), we were able to create our simulated CI by choosing upper and lower bounds, such that 95% of the (resampled) means are covered.

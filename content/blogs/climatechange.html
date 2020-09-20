@@ -1,0 +1,391 @@
+---
+categories:
+- ""
+- ""
+date: "2020-09-15"
+description: Climate Change
+draft: false
+image: tree.jpg
+keywords: ""
+slug: climatechange
+title: Is global warming real or a hoax?
+
+---
+
+<script src="/rmarkdown-libs/kePrint/kePrint.js"></script>
+<link href="/rmarkdown-libs/lightable/lightable.css" rel="stylesheet" />
+
+
+<div id="climate-change-and-temperature-anomalies" class="section level1">
+<h1>Climate change and temperature anomalies</h1>
+<p>We want to study climate change and gratefully find data on the <em>Combined Land-Surface Air and Sea-Surface Water Temperature Anomalies</em> in the Northern Hemisphere at <a href="https://data.giss.nasa.gov/gistemp">NASA’s Goddard Institute for Space Studies</a>. The <a href="https://data.giss.nasa.gov/gistemp/tabledata_v3/NH.Ts+dSST.txt">tabular data of temperature anomalies can be found here</a>.</p>
+<p>To define temperature anomalies, we need to have a reference, or base period, which NASA clearly states that it is the period between 1951-1980.</p>
+<p>Let’s load the data and have a look!</p>
+<pre class="r"><code>weather &lt;- 
+  read_csv(&quot;https://data.giss.nasa.gov/gistemp/tabledata_v3/NH.Ts+dSST.csv&quot;, 
+           skip = 1, # start in row 2
+           na = &quot;***&quot;) # recognize *** as NAs</code></pre>
+<p>For each month and year, the dataframe shows the deviation of temperature from the normal (expected). Furthermore, the dataframe is in wide format. Hence, we first bring it into long format, which makes it easier to analyse the data:</p>
+<pre class="r"><code># bring data in tidy format
+tidyweather &lt;- weather %&gt;%
+  # only use year and month columns
+  select(Year:Dec) %&gt;%
+  # bring into long format
+  pivot_longer(cols = Jan:Dec, names_to = &quot;Month&quot;, values_to = &quot;delta&quot;) 
+
+# print 10 rows of the table to have a look at the transformed data
+tidyweather %&gt;% 
+  head(10) %&gt;% 
+  kbl   () %&gt;%
+  kable_styling(bootstrap_options = c(&quot;striped&quot;, &quot;hover&quot;, &quot;condensed&quot;, &quot;responsive&quot;))</code></pre>
+<table class="table table-striped table-hover table-condensed table-responsive" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:right;">
+Year
+</th>
+<th style="text-align:left;">
+Month
+</th>
+<th style="text-align:right;">
+delta
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right;">
+1880
+</td>
+<td style="text-align:left;">
+Jan
+</td>
+<td style="text-align:right;">
+-0.54
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+1880
+</td>
+<td style="text-align:left;">
+Feb
+</td>
+<td style="text-align:right;">
+-0.38
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+1880
+</td>
+<td style="text-align:left;">
+Mar
+</td>
+<td style="text-align:right;">
+-0.26
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+1880
+</td>
+<td style="text-align:left;">
+Apr
+</td>
+<td style="text-align:right;">
+-0.37
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+1880
+</td>
+<td style="text-align:left;">
+May
+</td>
+<td style="text-align:right;">
+-0.11
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+1880
+</td>
+<td style="text-align:left;">
+Jun
+</td>
+<td style="text-align:right;">
+-0.22
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+1880
+</td>
+<td style="text-align:left;">
+Jul
+</td>
+<td style="text-align:right;">
+-0.23
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+1880
+</td>
+<td style="text-align:left;">
+Aug
+</td>
+<td style="text-align:right;">
+-0.24
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+1880
+</td>
+<td style="text-align:left;">
+Sep
+</td>
+<td style="text-align:right;">
+-0.26
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+1880
+</td>
+<td style="text-align:left;">
+Oct
+</td>
+<td style="text-align:right;">
+-0.32
+</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>glimpse(tidyweather)</code></pre>
+<pre><code>## Rows: 1,680
+## Columns: 3
+## $ Year  &lt;dbl&gt; 1880, 1880, 1880, 1880, 1880, 1880, 1880, 1880, 1880, 1880, 188…
+## $ Month &lt;chr&gt; &quot;Jan&quot;, &quot;Feb&quot;, &quot;Mar&quot;, &quot;Apr&quot;, &quot;May&quot;, &quot;Jun&quot;, &quot;Jul&quot;, &quot;Aug&quot;, &quot;Sep&quot;, …
+## $ delta &lt;dbl&gt; -0.54, -0.38, -0.26, -0.37, -0.11, -0.22, -0.23, -0.24, -0.26, …</code></pre>
+<p>Note that <code>Year</code> and <code>Month</code> are stored as <code>double</code> and <code>character</code> variables (and not as <code>date</code> variables).</p>
+<div id="plotting-information" class="section level2">
+<h2>Plotting Information</h2>
+<p>To be able to create a nice time series plot, we first need to create a new variable called <code>date</code>, in order to ensure that the <code>delta</code> values are plot chronologically.</p>
+<pre class="r"><code>tidyweather &lt;- tidyweather %&gt;%
+  mutate(date = ymd(paste(as.character(Year), Month, &quot;1&quot;)), # create `date` variable with lubridate
+         month = month(date, label=TRUE),
+         year = year(date))
+
+# plot a timeseries scatterplot of all the deltas
+ggplot(tidyweather, aes(x=date, y = delta))+
+  geom_point() +
+  geom_smooth(color=&quot;red&quot;) + # add smoothed red line
+  theme_bw() +
+  labs (
+    title = &quot;Increasing Weather Anomalies Demonstrating Global Warming&quot;,
+    caption = &quot;Source: NASA&quot;
+  )</code></pre>
+<p><img src="/blogs/climatechange_files/figure-html/scatter_plot-1.png" width="648" style="display: block; margin: auto;" /></p>
+<p>As we can clearly see, there seems to be a strong trend towards warm weather anomalies! Let’s explore this relationship further by fitting a linear regression model to the data.</p>
+<pre class="r"><code>tidyweather &lt;- tidyweather %&gt;%
+  mutate(date = ymd(paste(as.character(Year), Month, &quot;1&quot;)), # create `date` variable with lubridate
+         month = month(date, label=TRUE),
+         year = year(date))
+
+# plot a timeseries scatterplot of all the deltas
+ggplot(tidyweather, aes(x=date, y = delta))+
+  geom_point() +
+  geom_smooth(method=&quot;lm&quot;,color=&quot;red&quot;) + # add smoothed red line
+  theme_bw() +
+  labs (
+    title = &quot;Increasing Weather Anomalies Demonstrating Global Warming&quot;,
+    caption = &quot;Source: NASA&quot;
+  )</code></pre>
+<p><img src="/blogs/climatechange_files/figure-html/unnamed-chunk-1-1.png" width="648" style="display: block; margin: auto;" /></p>
+<p>Let’s explore how the linear regression model fits the data.</p>
+<p>Is the effect of increasing temperature more pronounced in some months? Let’s have a look:</p>
+<p><img src="/blogs/climatechange_files/figure-html/facet_wrap-1.png" width="648" style="display: block; margin: auto;" /></p>
+<p>We can see that the effect is almost the same for every month!</p>
+<p>As a next step for our analysis of global warming, we group the years into bigger periods:</p>
+<pre class="r"><code>comparison &lt;- tidyweather %&gt;% 
+  filter(Year&gt;= 1881) %&gt;%     #remove years prior to 1881
+  #create new variable &#39;interval&#39;, and assign values based on criteria below:
+  mutate(interval = case_when(
+    Year %in% c(1881:1920) ~ &quot;1881-1920&quot;,
+    Year %in% c(1921:1950) ~ &quot;1921-1950&quot;,
+    Year %in% c(1951:1980) ~ &quot;1951-1980&quot;,
+    Year %in% c(1981:2010) ~ &quot;1981-2010&quot;,
+    TRUE ~ &quot;2011-present&quot;
+  ))</code></pre>
+<p>Using our new <code>interval</code> variable, we are able to create a density plot to study the distribution of monthly deviations, grouped by the different time periods.</p>
+<pre class="r"><code>ggplot(comparison, aes(x=delta, fill=interval))+
+  geom_density(alpha=0.2) +   # density plot with transparency set to 20%
+  theme_bw() +                # theme
+  labs (
+    title = &quot;The Bells are getting Louder!&quot;,
+    subtitle = &quot;Density Plot for Monthly Temperature Anomalies&quot;,
+    y     = &quot;Density&quot;,         # changing y-axis label to sentence case
+    caption = &quot;Source: NASA&quot;
+  )</code></pre>
+<p><img src="/blogs/climatechange_files/figure-html/density_plot-1.png" width="648" style="display: block; margin: auto;" /></p>
+<p>Again, we can clearly recognize the pattern of global warming!</p>
+<p>So far, we have been working with monthly anomalies. However, we are also interested in average annual anomalies.</p>
+<p>Let’s have a look, how they look like:</p>
+<pre class="r"><code>#creating yearly averages
+average_annual_anomaly &lt;- tidyweather %&gt;% 
+  group_by(year) %&gt;%   #grouping data by Year
+  
+  # creating summaries for mean delta 
+  # use `na.rm=TRUE` to eliminate NA (not available) values 
+  summarise(annual_average_delta = mean(delta, na.rm=TRUE)) 
+
+#plotting the data:
+ggplot(average_annual_anomaly, aes(x=year, y= annual_average_delta))+
+  geom_point()+
+  #Fit the best fit line, using LOESS method
+  geom_smooth(method = &quot;loess&quot;) +
+  #change to theme_bw() to have white background + black frame around plot
+  theme_bw() +
+  labs (
+    title = &quot;Global Warming is REAL!!&quot;,
+    subtitle = &quot;Average Yearly Anomaly&quot;,
+    y     = &quot;Average Annual Delta&quot;,
+    caption = &quot;Source: NASA&quot;
+  )                         </code></pre>
+<p><img src="/blogs/climatechange_files/figure-html/averaging-1.png" width="648" style="display: block; margin: auto;" /></p>
+<p>Once more, the message is pretty clear: global warming is real!</p>
+</div>
+<div id="confidence-interval-for-delta" class="section level2">
+<h2>Confidence Interval for <code>delta</code></h2>
+<p><a href="https://earthobservatory.nasa.gov/world-of-change/decadaltemp.php">NASA points out on their website</a> that</p>
+<blockquote>
+<p>A one-degree global change is significant because it takes a vast amount of heat to warm all the oceans, atmosphere, and land by that much. In the past, a one- to two-degree drop was all it took to plunge the Earth into the Little Ice Age.</p>
+</blockquote>
+<p>So, do we already deal with a one-degree global change? For this purpose, we calculate a confidence interval for the time between 2011-present.</p>
+<p>First, we want to do this using traditional formulas:</p>
+<pre class="r"><code>formula_ci &lt;- comparison %&gt;% 
+  # choose the interval 2011-present
+  filter(interval == &quot;2011-present&quot;, !is.na(delta)) %&gt;%
+  # calculate summary statistics for temperature deviation (delta) 
+  # calculate mean, SD, count, SE, margin of error and lower/upper 95% CI
+  summarise(mean_delta = mean(delta),
+            sd_delta = sd(delta),
+            count = n(),
+            # get t-critical value with (n-1) degrees of freedom
+            t_critical = qt(0.975, count-1),
+            se_delta = sd_delta/sqrt(count),
+            margin_of_error = t_critical * se_delta,
+            delta_low = mean_delta - margin_of_error,
+            delta_high = mean_delta + margin_of_error
+  ) 
+
+#print out formula_CI
+formula_ci %&gt;% 
+  select(delta_low, mean_delta, delta_high) %&gt;% # only show relevant columns
+  rename(`lower bound` = delta_low, `mean delta` = mean_delta, `upper bound` = delta_high) %&gt;% # create readable names
+  kbl(caption = &quot;confidence interval for mean delta since 2011 (formula)&quot;) %&gt;%
+  kable_styling(bootstrap_options = c(&quot;striped&quot;, &quot;hover&quot;, &quot;condensed&quot;, &quot;responsive&quot;)) # have a nice HTML table</code></pre>
+<table class="table table-striped table-hover table-condensed table-responsive" style="margin-left: auto; margin-right: auto;">
+<caption>
+(#tab:calculate_CI_using_formula)confidence interval for mean delta since 2011 (formula)
+</caption>
+<thead>
+<tr>
+<th style="text-align:right;">
+lower bound
+</th>
+<th style="text-align:right;">
+mean delta
+</th>
+<th style="text-align:right;">
+upper bound
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right;">
+0.915
+</td>
+<td style="text-align:right;">
+0.966
+</td>
+<td style="text-align:right;">
+1.02
+</td>
+</tr>
+</tbody>
+</table>
+<p>Hence, we get an average delta of 0.966 and a confidence interval of [0.915, 1.02] under 97.5% confidence. As we can see, it seems not unlikely that there already is a one-degree global warming!</p>
+<p>However, some people trust more into the simulation skills of their computers than into mathematical formulas. Hence, let’s calculate the confidence interval using bootstrapping!</p>
+<pre class="r"><code># use the infer package to construct a 95% CI for delta
+
+set.seed(1234)
+
+boot_weather &lt;- comparison %&gt;%
+  # Choose only 2011-present period
+  filter(interval == &quot;2011-present&quot;, !is.na(delta)) %&gt;%
+  # Specify the variable of interest
+  specify(response = delta) %&gt;%
+  # Generate a bunch of bootstrap samples
+  generate(reps = 1000, type = &quot;bootstrap&quot;) %&gt;%
+  # Find the mean of each sample
+  calculate(stat = &quot;mean&quot;)
+
+# calculate confidence interval
+percentile_ci &lt;- boot_weather %&gt;%
+  get_ci(level=0.95, type=&quot;percentile&quot;)
+
+# print out confidence interval
+percentile_ci %&gt;% 
+  rename(`lower bound` = lower_ci, `upper bound` = upper_ci) %&gt;% # create readable names
+  kbl(caption = &quot;confidence interval for mean delta since 2011 (simulated)&quot;) %&gt;%
+  kable_styling(bootstrap_options = c(&quot;striped&quot;, &quot;hover&quot;, &quot;condensed&quot;, &quot;responsive&quot;)) # have a nice HTML table</code></pre>
+<table class="table table-striped table-hover table-condensed table-responsive" style="margin-left: auto; margin-right: auto;">
+<caption>
+(#tab:calculate_CI_using_bootstrap)confidence interval for mean delta since 2011 (simulated)
+</caption>
+<thead>
+<tr>
+<th style="text-align:right;">
+lower bound
+</th>
+<th style="text-align:right;">
+upper bound
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right;">
+0.917
+</td>
+<td style="text-align:right;">
+1.02
+</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code># visualise both confidence intervals and the bootstrap distribution
+ggplot(boot_weather, aes(x = stat)) +
+  geom_histogram() +
+  labs(title= &quot;Bootstrap distribution of means with confidence intervals \nshow similar results to formula confidence intervals&quot;) +
+  # add confidence interval bounds as vertical lines
+  geom_vline(aes(xintercept = percentile_ci$lower_ci, colour = &#39;bootstrap CI&#39;), linetype = 2, size = 1.1) +
+  geom_vline(aes(xintercept = percentile_ci$upper_ci, colour = &#39;bootstrap CI&#39;), linetype = 2, size = 1.1) +
+  geom_vline(aes(xintercept = formula_ci$delta_low, colour = &#39;formula CI&#39;), linetype = 1, size = 1.1) +
+  geom_vline(aes(xintercept = formula_ci$delta_high, colour = &#39;formula CI&#39;), linetype = 1, size = 1.1) +
+  # change color of the lines
+  scale_color_manual(name = NULL, values = c(`bootstrap CI` = &quot;red&quot;, `formula CI` = &quot;orange&quot;)) +
+  theme_bw()</code></pre>
+<p><img src="/blogs/climatechange_files/figure-html/visualise_ci_bootstrap-1.png" width="648" style="display: block; margin: auto;" /></p>
+<p>We can see that the simulated CI and the mathematically calculated CI are very similar.</p>
+<p>For the simulated CI, we resampled our sample 1000 times with replication (–&gt; bootstrapping).</p>
+<p>For each of these 1000 “new” samples, we then calculated the average delta and obtained the bootstrap distribution as depicted above.</p>
+<p>With the help of this simulated / approximated sample distribution (distribution of the mean delta), we were able to create our simulated CI by choosing upper and lower bounds, such that 95% of the (resampled) means are covered.</p>
+</div>
+</div>
